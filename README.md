@@ -1,6 +1,6 @@
 # GitHub Action for exporting JSONResume
 
-This action exports your resume in [JSONResume](https://jsonresume.org/) to **HTML**.
+This action exports your resume in [JSONResume](https://jsonresume.org/) to **HTML** and **PDF**.
 
 This can be combined with other actions to publish your resume as a Github page.
 
@@ -12,7 +12,7 @@ This can be combined with other actions to publish your resume as a Github page.
 | --- | --- | --- |
 | theme | JSONResume theme name. See https://jsonresume.org/themes/ | `flat` |
 | resume_filepath | file path to your resume in JSONResume format | `resume.json` |
-| output_filepath | output file path | `index.html` |
+| output_filepath | output file path | `index` |
 
 ## Example Workflows
 
@@ -43,21 +43,21 @@ jobs:
     needs: check_run
     steps:
       - uses: actions/checkout@v2
-      - uses: kelvintaywl/action-jsonresume-export@v1
-        name: Export resume as HTML
+      - uses: lexbrugman/action-jsonresume-export@master
+        name: Export resume as HTML and PDF
         with:
           theme: macchiato
           resume_filepath: resume.json
-          # modifies the index.html in-place
-          output_filepath: docs/index.html
-      - name: Commit published HTML
+          # modifies the index.html and index.pdf in-place
+          output_filepath: docs/index
+      - name: Commit published HTML and PDF
         id: commit
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          if [ -n "$(git status --porcelain docs/index.html)" ]; then
-            git add docs/index.html
-            git commit -m "[ci skip] chore(docs/index.html): update resume page"
+          if [ -n "$(git status --porcelain docs/index.{html,pdf})" ]; then
+            git add docs/index.{html,pdf}
+            git commit -m "[ci skip] update resume exports"
             echo ::set-output name=exit_code::0
           else
             echo ::set-output name=exit_code::1
@@ -80,6 +80,6 @@ However, I made this action because:
 
 1. Using a specific theme that is not supported [requires the JSONResume team to add the theme as dependency to their solutions](https://github.com/jsonresume/registry-functions/issues/7); I wanted to keep the export dependency lean with just the theme I need for my case.
 
-2. This solution allow me to centrally keep a resume in both the JSON format as well as publishing it in HTML as a GitHub page easily.
+2. This solution allow me to centrally keep a resume in both the JSON format as well as publishing it in HTML and PDF as a GitHub page easily.
 
 3. I wanted to learn more about creating and writing Github Actions :robot:

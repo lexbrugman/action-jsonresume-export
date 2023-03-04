@@ -1,14 +1,18 @@
-FROM node:12
+FROM node:16
 
-# do not require puppeteer download of Chronium;
-# resume-cli uses puppeteer for PDF export, which we do not use.
-ENV PUPPETEER_SKIP_DOWNLOAD=1
+ENV RESUME_PUPPETEER_NO_SANDBOX=true
 
 LABEL repository="https://github.com/kelvintaywl/jsonresume-github-page"
 LABEL homepage="https://github.com/kelvintaywl/jsonresume-github-page"
 LABEL maintainer="Kelvin Tay <kelvintaywl@gmail.com>"
 
-RUN npm install -g resume-cli@3.0.3
-COPY entrypoint.sh /entrypoint.sh
+RUN apt-get -q -q -y update && apt-get -q -q -y install jq libnss3 libatk1.0 libatk-bridge2.0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2
 
-ENTRYPOINT ["/entrypoint.sh"]
+RUN mkdir -p /app
+WORKDIR /app
+
+RUN npm install -g resume-cli
+
+COPY entrypoint.sh /app
+
+ENTRYPOINT ["/app/entrypoint.sh"]
