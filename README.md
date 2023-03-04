@@ -25,49 +25,46 @@ This can be combined with other actions to publish your resume as a Github page.
 ```yaml
 # example GitHub workflow
 
-name: Publish resume in JSONResume format as Github Page
- 
+name: Publish resume as Github Page
+
 on:
   push:
     branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  check_run:
-    runs-on: ubuntu-latest
-    if: "! contains(github.event.head_commit.message, '[ci skip]')"
-    steps:
-      - run: echo "${{ github.event.head_commit.message }}"
-
   build:
     runs-on: ubuntu-latest
-    needs: check_run
     steps:
-      - uses: actions/checkout@v2
-      - uses: lexbrugman/action-jsonresume-export@master
-        name: Export resume as HTML and PDF
+      - name: Check out your repository using git
+        uses: actions/checkout@v2
+        
+      - name: Export resume.json as HTML and PDF 
+        uses: lexbrugman/action-jsonresume-export@master
         with:
-          theme: macchiato
           resume_filepath: resume.json
-          # modifies the index.html and index.pdf in-place
           output_filepath: docs/index
-      - name: Commit published HTML and PDF
-        id: commit
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          if [ -n "$(git status --porcelain docs/index.{html,pdf})" ]; then
-            git add docs/index.{html,pdf}
-            git commit -m "[ci skip] update resume exports"
-            echo ::set-output name=exit_code::0
-          else
-            echo ::set-output name=exit_code::1
-          fi
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        if: steps.commit.outputs.exit_code == 0
+          
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          path: docs
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
 ```
 
 ## Why?
