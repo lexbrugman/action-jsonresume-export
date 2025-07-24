@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:24-bookworm
 
 ENV RESUME_PUPPETEER_NO_SANDBOX=true
 
